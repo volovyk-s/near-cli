@@ -75,7 +75,11 @@ impl Server {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) -> crate::CliResult {
         self.send_from
-            .process(prepopulated_unsigned_transaction, self.connection_config)
+            .process(
+                prepopulated_unsigned_transaction,
+                self.connection_config,
+                "".to_string(),
+            )
             .await
     }
 }
@@ -121,11 +125,16 @@ impl SendFrom {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         connection_config: Option<crate::common::ConnectionConfig>,
+        console_command: String,
     ) -> crate::CliResult {
         match self {
             SendFrom::Sender(sender) => {
                 sender
-                    .process(prepopulated_unsigned_transaction, connection_config)
+                    .process(
+                        prepopulated_unsigned_transaction,
+                        connection_config,
+                        console_command + "sender ",
+                    )
                     .await
             }
         }

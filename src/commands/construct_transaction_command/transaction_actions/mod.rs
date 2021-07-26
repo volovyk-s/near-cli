@@ -418,6 +418,7 @@ impl SkipAction {
             .process(
                 prepopulated_unsigned_transaction,
                 network_connection_config.clone(),
+                "".to_string(),
             )
             .await?
         {

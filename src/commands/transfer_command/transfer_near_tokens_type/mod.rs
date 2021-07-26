@@ -45,11 +45,16 @@ impl Transfer {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         network_connection_config: Option<crate::common::ConnectionConfig>,
+        console_command: String,
     ) -> crate::CliResult {
         match self {
             Transfer::Amount(transfer_near_action) => {
                 transfer_near_action
-                    .process(prepopulated_unsigned_transaction, network_connection_config)
+                    .process(
+                        prepopulated_unsigned_transaction,
+                        network_connection_config,
+                        console_command + "amount ",
+                    )
                     .await
             }
         }
@@ -107,10 +112,15 @@ impl TransferNEARTokensAction {
             .unwrap()
     }
 
+    fn get_console_command(&self, console_command: &String) -> String {
+        format!("{} '{}' ", console_command, self.amount)
+    }
+
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         network_connection_config: Option<crate::common::ConnectionConfig>,
+        console_command: String,
     ) -> crate::CliResult {
         let action = near_primitives::transaction::Action::Transfer(
             near_primitives::transaction::TransferAction {
@@ -123,9 +133,14 @@ impl TransferNEARTokensAction {
             actions,
             ..prepopulated_unsigned_transaction
         };
+        let console_command: String = self.get_console_command(&console_command);
         match self
             .sign_option
-            .process(unsigned_transaction, network_connection_config.clone())
+            .process(
+                unsigned_transaction,
+                network_connection_config.clone(),
+                console_command,
+            )
             .await?
         {
             Some(transaction_info) => {

@@ -173,6 +173,7 @@ impl FunctionCallType {
             .process(
                 unsigned_transaction.clone(),
                 network_connection_config.clone(),
+                "".to_string(),
             )
             .await?
         {

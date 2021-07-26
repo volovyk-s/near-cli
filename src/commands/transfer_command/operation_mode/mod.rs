@@ -35,8 +35,11 @@ impl OperationMode {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        console_command: String,
     ) -> crate::CliResult {
-        self.mode.process(prepopulated_unsigned_transaction).await
+        self.mode
+            .process(prepopulated_unsigned_transaction, console_command)
+            .await
     }
 }
 
@@ -99,6 +102,7 @@ impl Mode {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        console_command: String,
     ) -> crate::CliResult {
         match self {
             Self::Network(network_args) => {
@@ -108,7 +112,10 @@ impl Mode {
             }
             Self::Offline(offline_args) => {
                 offline_args
-                    .process(prepopulated_unsigned_transaction)
+                    .process(
+                        prepopulated_unsigned_transaction,
+                        console_command + "offline ",
+                    )
                     .await
             }
         }

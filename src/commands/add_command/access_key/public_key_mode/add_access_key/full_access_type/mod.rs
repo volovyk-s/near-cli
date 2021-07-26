@@ -65,6 +65,7 @@ impl FullAccessType {
             .process(
                 unsigned_transaction.clone(),
                 network_connection_config.clone(),
+                "".to_string(),
             )
             .await?
         {

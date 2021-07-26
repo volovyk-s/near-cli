@@ -31,10 +31,15 @@ impl OfflineArgs {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        console_command: String,
     ) -> crate::CliResult {
         let selected_server_url = None;
         self.send_from
-            .process(prepopulated_unsigned_transaction, selected_server_url)
+            .process(
+                prepopulated_unsigned_transaction,
+                selected_server_url,
+                console_command,
+            )
             .await
     }
 }

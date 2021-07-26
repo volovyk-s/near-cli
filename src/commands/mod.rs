@@ -128,7 +128,7 @@ impl TopLevelCommand {
         Self::from(cli_top_level_command)
     }
 
-    pub async fn process(self) -> crate::CliResult {
+    pub async fn process(self, console_command: String) -> crate::CliResult {
         let unsigned_transaction = near_primitives::transaction::Transaction {
             signer_id: "".to_string(),
             public_key: near_crypto::PublicKey::empty(near_crypto::KeyType::ED25519),
@@ -143,7 +143,11 @@ impl TopLevelCommand {
             Self::Delete(delete_action) => delete_action.process(unsigned_transaction).await,
             Self::Execute(option_method) => option_method.process(unsigned_transaction).await,
             Self::Login(mode) => mode.process().await,
-            Self::Transfer(currency) => currency.process(unsigned_transaction).await,
+            Self::Transfer(currency) => {
+                currency
+                    .process(unsigned_transaction, console_command + "transfer ")
+                    .await
+            }
             Self::Utils(util_type) => util_type.process().await,
             Self::View(view_query_request) => view_query_request.process().await,
         }

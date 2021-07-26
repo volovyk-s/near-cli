@@ -37,9 +37,10 @@ impl Currency {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        console_command: String,
     ) -> crate::CliResult {
         self.currency_selection
-            .process(prepopulated_unsigned_transaction)
+            .process(prepopulated_unsigned_transaction, console_command)
             .await
     }
 }
@@ -90,11 +91,12 @@ impl CurrencySelection {
     async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        console_command: String,
     ) -> crate::CliResult {
         match self {
             Self::NEAR(operation_mode) => {
                 operation_mode
-                    .process(prepopulated_unsigned_transaction)
+                    .process(prepopulated_unsigned_transaction, console_command + "near ")
                     .await
             }
         }

@@ -128,7 +128,11 @@ impl DeleteAccessKeyType {
         };
         match self
             .sign_option
-            .process(unsigned_transaction, network_connection_config.clone())
+            .process(
+                unsigned_transaction,
+                network_connection_config.clone(),
+                "".to_string(),
+            )
             .await?
         {
             Some(transaction_info) => {

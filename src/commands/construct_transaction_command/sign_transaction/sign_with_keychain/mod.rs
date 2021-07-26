@@ -81,6 +81,20 @@ struct User {
 }
 
 impl SignKeychain {
+    fn get_console_command(
+        &self,
+        console_command: String,
+        network_connection_config: &Option<crate::common::ConnectionConfig>,
+    ) -> String {
+        match network_connection_config {
+            Some(_) => console_command + "display",
+            None => format!(
+                "{} --block-hash '{}' --nonce '{}' ",
+                console_command, self.block_hash, self.nonce
+            ),
+        }
+    }
+
     fn rpc_client(&self, selected_server_url: &str) -> near_jsonrpc_client::JsonRpcClient {
         near_jsonrpc_client::new_client(&selected_server_url)
     }
@@ -89,6 +103,7 @@ impl SignKeychain {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         network_connection_config: Option<crate::common::ConnectionConfig>,
+        console_command: String,
     ) -> color_eyre::eyre::Result<Option<near_primitives::views::FinalExecutionOutcomeView>> {
         let home_dir = dirs::home_dir().expect("Impossible to get your home dir!");
         let file_name = format!("{}.json", prepopulated_unsigned_transaction.signer_id);
@@ -189,8 +204,14 @@ impl SignKeychain {
             block_hash: self.block_hash.clone(),
             submit: self.submit.clone(),
         };
+        let console_command: String =
+            self.get_console_command(console_command, &network_connection_config);
         sign_with_private_key
-            .process(prepopulated_unsigned_transaction, network_connection_config)
+            .process(
+                prepopulated_unsigned_transaction,
+                network_connection_config,
+                console_command,
+            )
             .await
     }
 }

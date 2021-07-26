@@ -103,6 +103,7 @@ impl SignPrivateKey {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         network_connection_config: Option<crate::common::ConnectionConfig>,
+        console_command: String,
     ) -> color_eyre::eyre::Result<Option<near_primitives::views::FinalExecutionOutcomeView>> {
         let public_key: near_crypto::PublicKey = self.signer_public_key.clone();
         let signer_secret_key: near_crypto::SecretKey = self.signer_secret_key.clone();
@@ -132,10 +133,10 @@ impl SignPrivateKey {
                 crate::common::print_transaction(signed_transaction.transaction.clone());
                 println!("Your transaction was signed successfully.");
                 match submit {
-                    Some(submit) => submit.process_offline(serialize_to_base64),
+                    Some(submit) => submit.process_offline(serialize_to_base64, console_command),
                     None => {
                         let submit = Submit::choose_submit();
-                        submit.process_offline(serialize_to_base64)
+                        submit.process_offline(serialize_to_base64, console_command)
                     }
                 }
             }
@@ -245,8 +246,10 @@ impl Submit {
     pub fn process_offline(
         self,
         serialize_to_base64: String,
+        console_command: String,
     ) -> color_eyre::eyre::Result<Option<near_primitives::views::FinalExecutionOutcomeView>> {
         println!("Srialize_to_base64:\n{}", &serialize_to_base64);
+        println!("Your console command:\n{}", &console_command);
         Ok(None)
     }
 

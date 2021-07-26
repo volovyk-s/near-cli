@@ -52,17 +52,27 @@ impl Sender {
             .unwrap()
     }
 
+    fn get_console_command(&self, console_command: &String) -> String {
+        format!("{} {} ", console_command, self.sender_account_id)
+    }
+
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         network_connection_config: Option<crate::common::ConnectionConfig>,
+        console_command: String,
     ) -> crate::CliResult {
         let unsigned_transaction = near_primitives::transaction::Transaction {
             signer_id: self.sender_account_id.clone(),
             ..prepopulated_unsigned_transaction
         };
+        let console_command: String = self.get_console_command(&console_command);
         self.send_to
-            .process(unsigned_transaction, network_connection_config)
+            .process(
+                unsigned_transaction,
+                network_connection_config,
+                console_command,
+            )
             .await
     }
 }

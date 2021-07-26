@@ -39,7 +39,9 @@ impl From<CliArgs> for Args {
 
 impl Args {
     async fn process(self) -> CliResult {
-        self.top_level_command.process().await
+        self.top_level_command
+            .process("./near-cli ".to_string())
+            .await
     }
 }
 
