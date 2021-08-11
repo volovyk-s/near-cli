@@ -1,4 +1,9 @@
 use clap::Clap;
+use std::env;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use cargo_util::{ProcessBuilder, ProcessError};
 
 mod commands;
 mod common;
@@ -58,4 +63,24 @@ fn main() -> CliResult {
     color_eyre::install()?;
 
     actix::System::new().block_on(args.process())
+}
+
+#[cfg(unix)]
+fn is_executable<P: AsRef<Path>>(path: P) -> bool {
+    use std::os::unix::prelude::*;
+    fs::metadata(path)
+        .map(|metadata| metadata.is_file() && metadata.permissions().mode() & 0o111 != 0)
+        .unwrap_or(false)
+}
+#[cfg(windows)]
+fn is_executable<P: AsRef<Path>>(path: P) -> bool {
+    path.as_ref().is_file()
+}
+
+fn search_directories(cargo_home_directory: PathBuf) -> Vec<PathBuf> {
+    let mut dirs = vec![cargo_home_directory.clone().join("bin")]; //TODO: is this string working?
+    if let Some(val) = env::var_os("PATH") {
+        dirs.extend(env::split_paths(&val));
+    }
+    dirs
 }
