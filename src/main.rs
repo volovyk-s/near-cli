@@ -65,6 +65,37 @@ fn main() -> CliResult {
     actix::System::new().block_on(args.process())
 }
 
+fn execute_external_subcommand(cargo_home_directory: PathBuf, cmd: &str, args: &[&str]) -> CliResult {
+    let command_exe = format!("near-{}{}", cmd, env::consts::EXE_SUFFIX);
+    let path = search_directories(cargo_home_directory)
+        .iter()
+        .map(|dir| dir.join(&command_exe))
+        .find(|file| is_executable(file));
+    let command = match path {
+        Some(command) => command,
+        None => {
+            return Err(color_eyre::eyre::eyre!("command {} does not exist", command_exe));
+        }
+    };
+
+    // let cargo_exe = config.cargo_exe()?;
+    let err = match ProcessBuilder::new(&command)
+        // .env(cargo::CARGO_ENV, cargo_exe)
+        .args(args)
+        .exec_replace()
+    {
+        Ok(()) => return Ok(()),
+        Err(e) => e,
+    };
+
+    if let Some(perr) = err.downcast_ref::<ProcessError>() {
+        if let Some(code) = perr.code {
+            return Err(color_eyre::eyre::eyre!("perror occured, code: {}", code));
+        }
+    }
+    return Err(color_eyre::eyre::eyre!(err));
+}
+
 #[cfg(unix)]
 fn is_executable<P: AsRef<Path>>(path: P) -> bool {
     use std::os::unix::prelude::*;
