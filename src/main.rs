@@ -49,7 +49,13 @@ impl Args {
 }
 
 fn main() -> CliResult {
-    let cli = CliArgs::parse();
+    let cli = match CliArgs::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => {
+            let args = std::env::args();
+            return try_external_subcommand_execution();
+        }
+    };
 
     if let Some(self::commands::CliTopLevelCommand::GenerateShellCompletions(subcommand)) =
         cli.top_level_command
@@ -65,23 +71,29 @@ fn main() -> CliResult {
     actix::System::new().block_on(args.process())
 }
 
-fn execute_external_subcommand(cargo_home_directory: PathBuf, cmd: &str, args: &[&str]) -> CliResult {
-    let command_exe = format!("near-{}{}", cmd, env::consts::EXE_SUFFIX);
-    let path = search_directories(cargo_home_directory)
+fn try_external_subcommand_execution() -> CliResult {
+    let subcommand_from_args = "TODO";
+    let mut ext_args: Vec<&str> = vec![subcommand_from_args];
+    //TODO: extend ext_args with all the other args
+    let subcommand_exe = format!("near-{}{}", subcommand_from_args, env::consts::EXE_SUFFIX);
+    let path = get_path_directories()
         .iter()
-        .map(|dir| dir.join(&command_exe))
+        .map(|dir| dir.join(&subcommand_exe))
         .find(|file| is_executable(file));
     let command = match path {
         Some(command) => command,
         None => {
-            return Err(color_eyre::eyre::eyre!("command {} does not exist", command_exe));
+            return Err(color_eyre::eyre::eyre!(
+                "command {} does not exist",
+                subcommand_exe
+            ));
         }
     };
 
     // let cargo_exe = config.cargo_exe()?;
     let err = match ProcessBuilder::new(&command)
         // .env(cargo::CARGO_ENV, cargo_exe)
-        .args(args)
+        .args(&ext_args)
         .exec_replace()
     {
         Ok(()) => return Ok(()),
@@ -108,8 +120,8 @@ fn is_executable<P: AsRef<Path>>(path: P) -> bool {
     path.as_ref().is_file()
 }
 
-fn search_directories(cargo_home_directory: PathBuf) -> Vec<PathBuf> {
-    let mut dirs = vec![cargo_home_directory.clone().join("bin")]; //TODO: is this string working?
+fn get_path_directories() -> Vec<PathBuf> {
+    let mut dirs = vec![];
     if let Some(val) = env::var_os("PATH") {
         dirs.extend(env::split_paths(&val));
     }
